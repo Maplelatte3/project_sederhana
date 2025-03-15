@@ -1,0 +1,179 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <ctime>
+
+using namespace std;
+
+class Member {
+public:
+    int id;
+    string name;
+
+    Member(int id, const string& name) : id(id), name(name) {}
+};
+
+class Book {
+public:
+    int id;
+    string title;
+    bool isBorrowed;
+    time_t borrowDate;
+    int borrowerId;
+
+    Book(int id, string t) : id(id), title(t), isBorrowed(false), borrowDate(0), borrowerId(-1) {}
+};
+
+class Library {
+private:
+    vector<Book> books;
+    vector<Member> members;
+    const int finePerDay = 1000; // Denda per hari
+
+public:
+    void addBook(int id, const string& title) {
+        books.push_back(Book(id, title));
+        cout << "Buku '" << title << "' dengan ID " << id << " telah ditambahkan ke perpustakaan." << endl;
+    }
+
+    void addMember(int id, const string& name) {
+        members.push_back(Member(id, name));
+        cout << "Anggota '" << name << "' dengan ID " << id << " telah ditambahkan." << endl;
+    }
+
+    void borrowBook(int bookId, int memberId, int borrowDay, int borrowMonth, int borrowYear) {
+        for (auto& book : books) {
+            if (book.id == bookId) {
+                if (!book.isBorrowed) {
+                    book.isBorrowed = true;
+
+                    // Menghitung tanggal peminjaman
+                    struct tm borrowDate = {0};
+                    borrowDate.tm_mday = borrowDay;
+                    borrowDate.tm_mon = borrowMonth - 1; // Bulan dimulai dari 0
+                    borrowDate.tm_year = borrowYear - 1900; // Tahun dari 1900
+                    book.borrowDate = mktime(&borrowDate);
+
+                    book.borrowerId = memberId;
+                    cout << "Anggota ID " << memberId << " telah meminjam buku '" << book.title << "' pada " 
+                         << borrowDay << "/" << borrowMonth << "/" << borrowYear << "." << endl;
+                    return;
+                } else {
+                    cout << "Buku '" << book.title << "' sudah dipinjam." << endl;
+                    return;
+                }
+            }
+        }
+        cout << "Buku dengan ID " << bookId << " tidak ditemukan." << endl;
+    }
+
+    void returnBook(int bookId, int returnDay, int returnMonth, int returnYear) {
+        for (auto& book : books) {
+            if (book.id == bookId) {
+                if (book.isBorrowed) {
+                    book.isBorrowed = false;
+
+                    // Menghitung tanggal pengembalian
+                    struct tm returnDate = {0};
+                    returnDate.tm_mday = returnDay;
+                    returnDate.tm_mon = returnMonth - 1; // Bulan dimulai dari 0
+                    returnDate.tm_year = returnYear - 1900; // Tahun dari 1900
+                    time_t returnTime = mktime(&returnDate);
+
+                    cout << "Buku '" << book.title << "' telah dikembalikan." << endl;
+
+                    double seconds = difftime(returnTime, book.borrowDate);
+                    int daysLate = static_cast<int>(seconds / (60 * 60 * 24)) - 7; // Menghitung keterlambatan
+
+                    if (daysLate > 0) {
+                        int fine = daysLate * finePerDay;
+                        cout << "Anda terlambat mengembalikan buku '" << book.title << "' selama " 
+                             << daysLate << " hari. Denda: Rp " << fine << endl;
+                    } else {
+                        cout << "Anda telah mengembalikan buku '" << book.title << "' tepat waktu." << endl;
+                    }
+                    return;
+                } else {
+                    cout << "Buku '" << book.title << "' tidak sedang dipinjam." << endl;
+                    return;
+                }
+            }
+        }
+        cout << "Buku dengan ID " << bookId << " tidak ditemukan." << endl;
+    }
+
+    void listBooks() {
+        cout << "Daftar Buku di Perpustakaan:" << endl;
+        for (const auto& book : books) {
+            cout << "- " << book.title << (book.isBorrowed ? " (Dipinjam)" : " (Tersedia)") << endl;
+        }
+    }
+};
+
+int main() {
+    Library library;
+    int choice, bookId, memberId;
+    string title, name;
+
+    do {
+        cout << "--------------------------------------------------------------------\n";
+        cout << "\nMenu Perpustakaan:" << endl;
+        cout << "--------------------------------------------------------------------\n";
+        cout << "1. Tambah Buku" << endl;
+        cout << "2. Tambah Anggota" << endl;
+        cout << "3. Pinjam Buku" << endl;
+        cout << "4. Kembalikan Buku" << endl;
+        cout << "5. Daftar Buku" << endl;
+        cout << "6. Keluar" << endl;
+        cout << "--------------------------------------------------------------------\n";
+        cout << "Pilih opsi: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Masukkan ID Buku: ";
+                cin >> bookId;
+                cout << "Masukkan Judul Buku: ";
+                cin.ignore();
+                getline(cin, title);
+                library.addBook(bookId, title);
+                break;
+            case 2:
+                cout << "Masukkan ID Anggota: ";
+                cin >> memberId;
+                cout << "Masukkan Nama Anggota: ";
+                cin.ignore();
+                getline(cin, name);
+                library.addMember(memberId, name);
+                break;
+            case 3:
+                cout << "Masukkan ID Buku yang ingin dipinjam: ";
+                cin >> bookId;
+                cout << "Masukkan ID Anggota: ";
+                cin >> memberId;
+                int borrowDay, borrowMonth, borrowYear;
+                cout << "Masukkan Tanggal Peminjaman (DD MM YYYY): ";
+                cin >> borrowDay >> borrowMonth >> borrowYear;
+                library.borrowBook(bookId, memberId, borrowDay, borrowMonth, borrowYear);
+                break;
+            case 4:
+                cout << "Masukkan ID Buku yang ingin dikembalikan: ";
+                cin >> bookId;
+                int returnDay, returnMonth, returnYear;
+                cout << "Masukkan Tanggal Pengembalian (DD MM YYYY): ";
+                cin >> returnDay >> returnMonth >> returnYear;
+                library.returnBook(bookId, returnDay, returnMonth, returnYear);
+                break;
+            case 5:
+                library.listBooks();
+                break;
+            case 6:
+                cout << "Terima kasih! Sampai jumpa." << endl;
+                break;
+            default:
+                cout << "Opsi tidak valid. Silakan coba lagi." << endl;
+        }
+    } while (choice != 6);
+
+    return 0;
+}
