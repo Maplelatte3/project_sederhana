@@ -1,1 +1,44 @@
+#include <iostream>
+using namespace std;
 
+int main() {
+    float a, b, hasil;
+    char aritmatika;
+
+    cout << "Selamat Datang Di Kalkulator menggunakan switch case\n\n";
+
+    // Masukkan input
+    cout << "Masukkan nilai pertama: ";
+    cin >> a;
+    cout << "Pilih operator (+, -, *, /): ";
+    cin >> aritmatika;
+    cout << "Masukkan nilai kedua: ";
+    cin >> b;
+
+    switch (aritmatika) {
+        case '+':
+            hasil = a + b;
+            cout << "\nHasil perhitungan: " << a << " + " << b << " = " << hasil << endl;
+            break;
+        case '-':
+            hasil = a - b;
+            cout << "\nHasil perhitungan: " << a << " - " << b << " = " << hasil << endl;
+            break;
+        case '*':
+            hasil = a * b;
+            cout << "\nHasil perhitungan: " << a << " * " << b << " = " << hasil << endl;
+            break;
+        case '/':
+            if (b != 0) {
+                hasil = a / b;
+                cout << "\nHasil perhitungan: " << a << " / " << b << " = " << hasil << endl;
+            } else {
+                cout << "Error: Pembagian dengan nol tidak diperbolehkan." << endl;
+            }
+            break;
+        default:
+            cout << "Operator salah" << endl;
+    }
+
+    return 0;
+}
